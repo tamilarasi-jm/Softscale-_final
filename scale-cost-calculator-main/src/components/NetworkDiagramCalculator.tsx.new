@@ -1,0 +1,136 @@
+import React, { useState, useCallback } from 'react';
+import ReactFlow, {
+  ReactFlowProvider,
+  useNodesState,
+  useEdgesState,
+  Controls,
+  Background,
+  MarkerType,
+  Node,
+  Edge,
+  NodeProps,
+  Handle,
+  Position,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+
+// ... (keep all your existing type definitions and custom components)
+
+const NetworkDiagramCalculator = () => {
+  const [showAON, setShowAON] = useState(true);
+  const [showAOA, setShowAOA] = useState(false);
+  const [activities, setActivities] = useState([
+    { id: 'A', name: 'A', duration: 3, predecessors: [] },
+    { id: 'B', name: 'B', duration: 4, predecessors: ['A'] },
+    { id: 'C', name: 'C', duration: 2, predecessors: ['A'] },
+    { id: 'D', name: 'D', duration: 5, predecessors: ['B', 'C'] },
+  ]);
+  
+  const [aoaActivities, setAoaActivities] = useState([
+    { from: '1', to: '2', duration: 3, name: 'A' },
+    { from: '2', to: '3', duration: 4, name: 'B' },
+    { from: '2', to: '4', duration: 2, name: 'C' },
+    { from: '3', to: '5', duration: 5, name: 'D' },
+    { from: '4', to: '5', duration: 5, name: 'D' },
+  ]);
+
+  const handleAONCalculate = useCallback(() => {
+    // Implementation of AON calculation
+  }, []);
+
+  const handleAOACalculate = useCallback(() => {
+    // Implementation of AOA calculation
+  }, []);
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Network Diagram Calculator</h1>
+      
+      <div className="flex space-x-4 mb-6">
+        <Button 
+          variant={showAON ? "default" : "outline"}
+          onClick={() => {
+            setShowAON(true);
+            setShowAOA(false);
+          }}
+        >
+          AON (Activity on Node)
+        </Button>
+        <Button 
+          variant={showAOA ? "default" : "outline"}
+          onClick={() => {
+            setShowAON(false);
+            setShowAOA(true);
+          }}
+        >
+          AOA (Activity on Arrow)
+        </Button>
+      </div>
+
+      <div className="space-y-6">
+        {showAON && (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>AON Diagram</CardTitle>
+                <CardDescription>Interactive Activity on Node diagram showing the critical path</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AONView activities={activities} onCalculate={handleAONCalculate} />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Activity on Node (AON) Calculator</CardTitle>
+                <CardDescription>
+                  Enter activity details and calculate ES, EF, LS, LF, and Float
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* AON Calculator UI */}
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {showAOA && (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>AOA Diagram</CardTitle>
+                <CardDescription>Interactive Activity on Arrow diagram showing events and activities</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AOAView activities={aoaActivities} onCalculate={handleAOACalculate} />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Activity on Arrow (AOA) Calculator</CardTitle>
+                <CardDescription>
+                  Enter activity details and calculate EET, LET, and Floats
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* AOA Calculator UI */}
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Wrap the component with ReactFlowProvider
+const NetworkDiagramCalculatorWrapper = () => (
+  <ReactFlowProvider>
+    <NetworkDiagramCalculator />
+  </ReactFlowProvider>
+);
+
+export default NetworkDiagramCalculatorWrapper;
