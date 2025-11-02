@@ -88,15 +88,12 @@ export const LandingPage = ({ onGetStarted, darkMode, onToggleDarkMode }: Landin
         <div className="container mx-auto max-w-6xl text-center">
           <div className="animate-slide-in-up">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Estimate Your Software
+              SoftScale
               <br />
-              <span className="gradient-text">Project Costs</span>
-              <br />
-              with Confidence
+              <span className="gradient-text">Measure. Compare. Predict.</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Professional cost estimation using 3 industry-standard models.
-              Fast, accurate, and completely free.
+              A Software Cost Estimation Platform
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button onClick={onGetStarted} size="lg" className="text-lg px-8 py-6">
@@ -217,7 +214,7 @@ export const LandingPage = ({ onGetStarted, darkMode, onToggleDarkMode }: Landin
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
         <div className="container mx-auto text-center text-muted-foreground">
-          <p>Made with ❤️ for project managers and developers everywhere</p>
+          <p>Contributed by Tamilarasi JM, Geethika VK, and Gopika P</p>
         </div>
       </footer>
     </div>

@@ -22,7 +22,7 @@ interface IndexProps {
 }
 
 const Index = ({ darkMode, onToggleDarkMode }: IndexProps) => {
-  const [appState, setAppState] = useState<AppState>('landing');
+  const [appState, setAppState] = useState<AppState>('app');
   const [estimationMode, setEstimationMode] = useState<'project' | 'feature'>('project');
   
   // Project parameters

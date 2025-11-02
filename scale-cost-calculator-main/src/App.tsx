@@ -15,6 +15,8 @@ import EVMCalculator from "./pages/EVMCalculator";
 import KPIDashboard from "./pages/KPIDashboard";
 import DiagramComparison from "./pages/DiagramComparison";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import Scheduling from "./pages/Scheduling/SchedulingPage";
+import EstimatorPage from "./pages/Estimator/EstimatorPage";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +79,20 @@ const AppContent = () => {
             element={
               <ErrorBoundary>
                 <DiagramComparison />
+              </ErrorBoundary>
+            } 
+          />
+          <Route path="/scheduling" 
+            element={
+              <ErrorBoundary>
+                <Scheduling />
+              </ErrorBoundary>
+            } 
+          />
+          <Route path="/estimator" 
+            element={
+              <ErrorBoundary>
+                <EstimatorPage />
               </ErrorBoundary>
             } 
           />
