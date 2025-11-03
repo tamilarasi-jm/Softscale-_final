@@ -2,19 +2,23 @@ import React, { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, Zap, Clock, DollarSign } from 'lucide-react';
 import { ToolSelector } from './components/ToolSelector';
 import { ProjectTimeline } from './components/ProjectTimeline';
 import { GanttChart } from './components/GanttChart';
+import { SummaryCards } from './components/SummaryCards';
+import { RecommendationsPanel } from './components/RecommendationsPanel';
 import { TOOLS, PROJECT_TEMPLATES } from './data';
 import { Tool, ProjectPhase, ProjectTemplate } from './types';
+import { toast } from '@/components/ui/use-toast';
 
-export const EstimatorPage = () => {
+export default function EstimatorPage() {
   // State for tools selection
   const [selectedTools, setSelectedTools] = useState<Tool[]>([]);
   
-  // State for project phases
+  // State for project phases and template
   const [phases, setPhases] = useState<ProjectPhase[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('Custom');
   
   // Calculate costs
   const { baseCost, overhead, totalMonthlyCost } = useMemo(() => {
@@ -48,6 +52,29 @@ export const EstimatorPage = () => {
   // Handle template selection
   const handleTemplateSelect = (template: ProjectTemplate) => {
     setPhases(JSON.parse(JSON.stringify(template.phases)));
+    setSelectedTemplate(template.name);
+    
+    toast({
+      title: "Template Applied",
+      description: `"${template.name}" template has been applied to your project.`,
+    });
+  };
+  
+  // Handle tool swap suggestion
+  const handleToolSwap = (fromToolId: string, toToolId: string) => {
+    const fromTool = selectedTools.find(t => t.id === fromToolId);
+    const toTool = TOOLS.find(t => t.id === toToolId);
+    
+    if (!fromTool || !toTool) return;
+    
+    setSelectedTools(prev => 
+      prev.map(tool => tool.id === fromToolId ? toTool : tool)
+    );
+    
+    toast({
+      title: "Tool Swapped",
+      description: `Replaced ${fromTool.name} with ${toTool.name}`,
+    });
   };
   
   // Export to PDF
@@ -62,50 +89,115 @@ export const EstimatorPage = () => {
     alert('Export to CSV functionality will be implemented here');
   };
   
+  // Calculate cost breakdown by category
+  const costByCategory = useMemo(() => {
+    const categories: Record<string, { name: string; cost: number; count: number }> = {};
+    
+    selectedTools.forEach(tool => {
+      if (!categories[tool.category]) {
+        categories[tool.category] = { name: tool.category, cost: 0, count: 0 };
+      }
+      categories[tool.category].cost += tool.monthlyPriceUSD;
+      categories[tool.category].count += 1;
+    });
+    
+    return Object.values(categories);
+  }, [selectedTools]);
+
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header with Export Options */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">SoftScale</h1>
-          <p className="text-muted-foreground">
-            Measure. Predict. Compare. Get precise project estimates for cost and timeline.
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            Project Estimator
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Plan your project's cost and timeline with precision
           </p>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={handleExportPDF}>
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <Button 
+            variant="outline" 
+            onClick={handleExportPDF}
+            className="flex-1 md:flex-none"
+          >
             <FileText className="h-4 w-4 mr-2" />
             Export PDF
           </Button>
-          <Button variant="outline" onClick={handleExportCSV}>
+          <Button 
+            variant="outline" 
+            onClick={handleExportCSV}
+            className="flex-1 md:flex-none"
+          >
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
         </div>
       </div>
       
-      <Tabs defaultValue="cost" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="cost">Cost Estimator</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule Planner</TabsTrigger>
-          <TabsTrigger value="timeline">Project Timeline</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="cost" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <ToolSelector 
-                tools={TOOLS} 
-                selectedTools={selectedTools}
-                onSelectionChange={setSelectedTools}
-              />
+      {/* Summary Cards */}
+      <SummaryCards
+        totalMonthlyCost={totalMonthlyCost}
+        projectDurationWeeks={projectDurationWeeks}
+        selectedToolsCount={selectedTools.length}
+        projectTemplate={selectedTemplate}
+      />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Tabs defaultValue="cost" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <TabsList>
+                <TabsTrigger value="cost" className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  <span>Cost Estimator</span>
+                </TabsTrigger>
+                <TabsTrigger value="schedule" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>Schedule</span>
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  <span>Timeline</span>
+                </TabsTrigger>
+              </TabsList>
             </div>
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cost Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
+        
+            <TabsContent value="cost" className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <ToolSelector 
+                    tools={TOOLS} 
+                    selectedTools={selectedTools}
+                    onSelectionChange={setSelectedTools}
+                  />
+                </div>
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Cost Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-muted-foreground">Base Tool Costs:</span>
+                          <span>${baseCost}/mo</span>
+                        </div>
+                        {overhead > 0 && (
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-muted-foreground">Multi-tool Overhead (10%):</span>
+                            <span className="text-amber-500">+${overhead}/mo</span>
+                          </div>
+                        )}
+                        <div className="border-t pt-2 mt-2">
+                          <div className="flex justify-between font-medium">
+                            <span>Monthly Total:</span>
+                            <span>${totalMonthlyCost}/mo</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-muted-foreground">Base Tool Costs:</span>
                       <span>${baseCost}/mo</span>
@@ -234,10 +326,49 @@ export const EstimatorPage = () => {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
-      </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        {/* Recommendations Panel */}
+        <div className="space-y-6">
+          <RecommendationsPanel
+            totalMonthlyCost={totalMonthlyCost}
+            projectDurationWeeks={projectDurationWeeks}
+            selectedTools={selectedTools}
+            projectTemplate={selectedTemplate}
+            onToolSwap={handleToolSwap}
+            onTemplateSelect={(template) => {
+              const selected = PROJECT_TEMPLATES.find(t => t.name === template);
+              if (selected) handleTemplateSelect(selected);
+            }}
+          />
+          
+          {/* Cost Breakdown */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Cost Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {costByCategory.map(({ name, cost, count }) => (
+                  <div key={name} className="flex items-center justify-between">
+                    <div className="text-sm font-medium">{name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      ${cost.toFixed(0)}/mo • {count} {count === 1 ? 'tool' : 'tools'}
+                    </div>
+                  </div>
+                ))}
+                <div className="h-px bg-border my-2" />
+                <div className="flex items-center justify-between font-medium">
+                  <div>Total Monthly Cost</div>
+                  <div className="text-primary">${totalMonthlyCost.toFixed(2)}/mo</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
-
-export default EstimatorPage;
